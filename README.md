@@ -4,8 +4,8 @@
 **Institución:** Duoc UC  
 **Evaluación:** Evaluación Parcial 2 (Encargo - Experiencia de Aprendizaje 2)  
 **Equipo de Desarrollo:**
-* Estudiante 1: Francisca (Lógica de Negocio, Persistencia Room, Recursos Nativos CameraX & Notificaciones)
-* Estudiante 2: Compañero de Equipo (Diseño UI Jetpack Compose, Material Design 3, Formularios y Validaciones)
+* Estudiante 1: Francisca Velásquez 
+* Estudiante 2: Guioinno Igor 
 
 ---
 
