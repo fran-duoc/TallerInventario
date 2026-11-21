@@ -2,124 +2,126 @@
 
 **Asignatura:** Desarrollo de Aplicaciones Móviles (DSY1105)  
 **Institución:** Duoc UC  
-**Evaluación:** Evaluación Parcial 2 (Encargo - Experiencia de Aprendizaje 2)  
-**Equipo de Desarrollo:**
-* Estudiante 1: Francisca Velásquez 
-* Estudiante 2: Guioinno Igor 
+**Evaluación:** Evaluación Parcial 4 (Entrega Final - Full Stack & Móvil)  
+**Estudiante:** Francisca Velásquez (fra.velasquezp@duocuc.cl)  
+**GitHub:** [https://github.com/fran-duoc/TallerInventario](https://github.com/fran-duoc/TallerInventario)  
+**Rama de Entrega:** `evaluacion-parcial-4`
 
 ---
 
-## 📌 1. Descripción del Proyecto y Contexto de Negocio
+## 📋 1. Gestión Ágil del Proyecto (Tablero Trello)
 
-La aplicación móvil da solución integral a la problemática real de control de repuestos, lubricantes, fluidos y accesorios del **Taller Mecánico Automotriz de Puente Alto**.
+El ciclo de desarrollo, la priorización de historias de usuario y el seguimiento continuo de tareas se administraron en el tablero real de Trello:
 
-El sistema permite al jefe de taller y a los mecánicos:
-1. Mantener un catálogo categorizado de repuestos con control estricto de existencias y umbrales mínimos.
-2. Calcular en tiempo real la **regla de reposición automática mínima sugerida**:
-   $$\text{cantidadSugeridaReposicion} = \max(0, (\text{stockMinimo} \times 2) - \text{cantidad})$$
-3. Prevenir quiebres de inventario mediante insignias visuales accesibles y alertas automáticas.
-4. Conocer la ubicación física exacta de cada pieza en bodega (Zona/Sector, Estante y Repisa) y el proveedor asignado.
+* 🔗 **Enlace Oficial del Tablero Trello:**  
+  [https://trello.com/b/folcXL7H/tallerinventario-evaluaci%C3%B3n-parcial-4](https://trello.com/b/folcXL7H/tallerinventario-evaluaci%C3%B3n-parcial-4)
 
----
-
-## 🚀 2. Funcionalidades Principales Implementadas
-
-### A. Interfaz Visual & Usabilidad (Jetpack Compose + Material Design 3)
-* **Pantalla de Catálogo Reactivo (`ListaProductosScreen`):**
-  * Búsqueda en tiempo real por texto (código, nombre del repuesto, marca o categoría) con botón de limpieza rápida.
-  * Filtros horizontales por categoría (`FilterChip`), incluyendo filtro directo por repuestos en estado crítico (**Bajo Stock / Crítico**).
-  * Tarjetas de repuesto (`ProductCard`) con bordes de contraste, desglose de precios (Venta y Costo), ubicación física y proveedor.
-  * Insignia de stock accesible (`StockBadge`) con color semántico, ícono y texto explícito (*Disponible*, *Bajo Stock*, *Agotado*).
-  * Diálogo modal de confirmación antes de eliminar cualquier registro.
-
-### B. Formularios Validados & Experiencia de Usuario (`ProductoFormScreen`)
-* Formulario estructurado en 3 secciones funcionales con íconos temáticos en cada campo:
-  1. *Identificación del Repuesto:* Código con botón de escáner directo, Nombre, Marca, Selector de Categoría y Selector de Unidad de Medida.
-  2. *Inventario, Stock y Precios:* Cantidad actual, Stock Mínimo, cálculo dinámico de reposición sugerida, Precios de compra y venta.
-  3. *Ubicación y Proveedor:* Sector de bodega, Estante, Repisa y Proveedor.
-* Validaciones visuales completas por campo (`isError = true`, ícono de advertencia `trailingIcon` y mensajes de error descriptivos `supportingText`).
-
-### C. Lógica Desacoplada y Arquitectura MVVM
-* Patrón **Model-View-ViewModel (MVVM)** con separación estricta de responsabilidades:
-  * **View (Compose):** Interfaz declarativa sin lógica de negocio acoplada.
-  * **ViewModel (`ProductoViewModel`):** Gestión de estado reactivo mediante `StateFlow<ProductoUiState>` y validaciones desacopladas:
-    * Código obligatorio y verificación de clave primaria única en base de datos.
-    * Campos de texto obligatorios (nombre, marca, categoría).
-    * Cantidad y stock mínimo enteros $\ge 0$.
-    * Precios numéricos $\ge 0$ y regla financiera: $\text{precioVenta} \ge \text{precioCompra}$ (prohibida venta bajo costo).
-    * Actualización dinámica del estado del inventario (*Disponible*, *Bajo Stock*, *Agotado*).
-  * **Repository (`ProductoRepository`):** Abstracción de datos que asegura ejecución en hilos de fondo (`Dispatchers.IO`).
-
-### D. Persistencia Local con SQLite y Room Database
-* Base de datos local mediante **Room**:
-  * Entidad `ProductoEntity` con clave primaria `codigo`.
-  * DAO `ProductoDao` con consultas reactivas mediante Kotlin `Flow` (búsqueda dinámica, filtros y ordenamiento).
-  * Precarga automática en segundo plano (`Dispatchers.IO`) con 5 productos representativos del taller de Puente Alto (Castrol EDGE 5W-30, Filtro Mann W712/22, Líquido de Frenos Bosch DOT4, Bujías Denso Iridium, Pastillas Brembo P060).
-  * Respaldo y persistencia total de datos tras cerrar y reiniciar la aplicación.
-
-### E. Integración de Recursos Nativos del Dispositivo (IE 2.4.1)
-1. **Cámara con CameraX y Google ML Kit Barcode Scanning:**
-   * Diálogo modal `QrScannerDialog` con vista previa de cámara y procesamiento continuo de frames en hilo dedicado.
-   * Compatible con códigos QR y códigos de barra 1D estándar en repuestos (EAN-13, CODE-128, UPC-A, UPC-E).
-   * Solicitud segura de permisos de cámara en runtime (`Manifest.permission.CAMERA`).
-   * Botón de control de linterna (Flash/Torch) para lectura en bodegas con baja iluminación.
-   * Feedback sensorial instantáneo: vibración háptica y pitido acústico (`ToneGenerator`) al detectar un código.
-2. **Notificaciones del Sistema Operativo (`NotificationManager`):**
-   * Canal de notificación nativo registrado en Android (`taller_alertas_stock`).
-   * Emisión automática de alertas en la barra de estado del sistema cuando un repuesto entra en estado *Bajo Stock* o *Agotado*.
-   * Verificación de permisos para Android 13+ (`Manifest.permission.POST_NOTIFICATIONS`).
-   * Botón de prueba directa en el encabezado de la aplicación y en cada tarjeta de repuesto con stock comprometido.
-3. **Marcador Telefónico Nativo (`Intent.ACTION_DIAL`):**
-   * Botón de contacto directo con proveedores automotrices desde la ficha del repuesto y el formulario.
-
-### F. Animaciones Visuales Funcionales (IE 2.2.2)
-* **Transiciones de Navegación Fluidas:** Configuración en `NavHost` con deslizamientos horizontales y desvanecimientos (`slideInHorizontally` + `fadeIn`).
-* **Expansión y Contracción Suave:** `Modifier.animateContentSize()` en tarjetas `ProductCard`.
-* **Visibilidad Animada:** `AnimatedVisibility` para avisos de reposición mínima sugerida y contadores de stock crítico.
-* **Transiciones de Color Suave:** `animateColorAsState` en insignias `StockBadge`.
+### Estructura de Listas de Flujo de Trabajo:
+1. **Por hacer:** Backlog inicial y requerimientos desglosados.
+2. **En desarrollo:** Tareas activas en implementación.
+3. **En revisión:** Validaciones de arquitectura, DTOs y contratos HTTP.
+4. **Pruebas:** Pruebas unitarias de backend, Android y análisis de cobertura JaCoCo.
+5. **Finalizado:** Todas las entregables cumplidos al 100%.
 
 ---
 
-## 🛠️ 3. Tecnologías y Librerías Utilizadas
+## 📌 2. Descripción del Proyecto y Contexto de Negocio
 
-* **Lenguaje:** Kotlin 2.2.10
-* **SDK Android:** compileSdk 35 | minSdk 24 | targetSdk 35
-* **UI Toolkit:** Jetpack Compose (BOM 2024.12.01) con Material Design 3
-* **Navegación:** `androidx.navigation:navigation-compose:2.8.5`
-* **Persistencia:** Room Database 2.7.0 (KSP + SQLite + Kotlin Coroutines & Flow)
-* **Recursos Nativos:**
-  * CameraX 1.4.1 (`camera-core`, `camera-camera2`, `camera-lifecycle`, `camera-view`)
-  * Google ML Kit Barcode Scanning 17.3.0
-  * Android Notifications API (`NotificationManager`, `NotificationCompat`)
-  * Android Intents (`Intent.ACTION_DIAL`)
+La solución integral resuelve la gestión técnica, operativa y comercial de repuestos, lubricantes y fluidos para el **Taller Mecánico Automotriz de Puente Alto**. Permite la sincronización bidireccional entre la aplicación móvil Android y un backend empresarial Spring Boot, además de interoperar con la base de datos vehicular del gobierno de EE.UU. (NHTSA) para compatibilidad técnica de repuestos y verificación de VINs.
 
 ---
 
-## 📱 4. Pasos para Compilar y Ejecutar
+## ☕ 3. Backend REST con Spring Boot
 
-### Requisitos Previos:
-* Android Studio Ladybug o superior (o Jellyfish / Koala).
-* JDK 17 o 21 configurado en Android Studio (`Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK`).
-* Dispositivo físico Android con depuración USB habilitada (o emulador con cámara y emulación de webcam configurada).
+Ubicación del código fuente: `./backend/`
 
-### Instrucciones de Ejecución:
-1. Clonar el repositorio:
-   ```bash
-   git clone <URL_DEL_REPOSITORIO_GITHUB>
-   ```
-2. Abrir el proyecto en Android Studio (`Open...` y seleccionar la carpeta del proyecto).
-3. Esperar la sincronización de Gradle (`Sync Project with Gradle Files`).
-4. Seleccionar la variante de compilación `debug`.
-5. Presionar el botón **Run 'app'** (Shift + F10) en Android Studio o compilar mediante terminal:
-   ```bash
-   ./gradlew assembleDebug
-   ```
-6. El APK generado se ubica en: `app/build/outputs/apk/debug/app-debug.apk`.
+### Tecnologías & Arquitectura Backend:
+* **Java 21 / 25** con **Spring Boot 3.4.0**.
+* **Spring Data JPA & Hibernate** para mapeo relacional.
+* **Base de datos H2** persistente en archivo (`./backend/data/tallerdb.mv.db`) y consola interactiva web en `/h2-console`.
+* **Jakarta Bean Validation** (`@Valid`, `@NotBlank`, `@Min`, `@DecimalMin`, etc.).
+* **Arquitectura limpia por capas:** Controller, Service, Repository, Entity, DTO y Global Exception Handler con respuestas RFC 7807 (`ProblemDetail`).
+* **Configuración CORS:** Habilitado para todos los orígenes (`*`) y emuladores Android (`10.0.2.2`).
+
+### Endpoints de la API REST (`/api/productos`):
+
+| Método | Endpoint | Descripción | Respuesta Exitosa |
+|---|---|---|---|
+| `GET` | `/api/productos` | Lista todo el inventario (admite filtro opcional `?categoria=...`) | `200 OK` (JSON List) |
+| `GET` | `/api/productos/{codigo}` | Obtiene el detalle de un repuesto por su código | `200 OK` (JSON Object) |
+| `POST` | `/api/productos` | Registra un nuevo repuesto con validaciones | `201 Created` |
+| `PUT` | `/api/productos/{codigo}` | Actualiza completamente un repuesto existente | `200 OK` |
+| `DELETE` | `/api/productos/{codigo}` | Elimina físicamente un repuesto del inventario | `204 No Content` |
+| `GET` | `/api/productos/buscar?query={q}` | Búsqueda por coincidencia en código, nombre, marca o categoría | `200 OK` (JSON List) |
+| `GET` | `/api/productos/bajo-stock` | Filtra repuestos críticos cuya cantidad $\le$ stock mínimo | `200 OK` (JSON List) |
+
+### Instrucciones para Ejecutar el Backend:
+```powershell
+cd backend
+.\gradlew.bat bootRun
+```
+* Servidor activo en: `http://localhost:8080/api/productos`
+* Consola H2 Database: `http://localhost:8080/h2-console`
+  * JDBC URL: `jdbc:h2:file:./data/tallerdb`
+  * Usuario: `sa` | Contraseña: *(vacía)*
 
 ---
 
-## 📋 5. Planificación y Trabajo Colaborativo (Trello)
+## 🌐 4. Integración de API Externa Automotriz (NHTSA API)
 
-La distribución de tareas, asignación de responsabilidades y seguimiento de avances del equipo se gestionó en el siguiente tablero de Trello:
-* **Enlace a Tablero Trello:** `https://trello.com/b/taller-mecanico-inventario-duoc` *(Reemplazar con el enlace real del equipo)*
-* **Columnas de Seguimiento:** *Por Hacer*, *En Progreso*, *Revisión / Pruebas*, *Finalizado*.
+Se integró la API pública y gratuita de la **National Highway Traffic Safety Administration (NHTSA)** del Departamento de Transporte de los Estados Unidos:
+
+* **Endpoint Base:** `https://vpic.nhtsa.dot.gov/api/`
+* **Casos de Uso en el Taller:**
+  1. **Decodificación de VIN (17 caracteres):** Obtiene especificaciones técnicas completas del vehículo ingresado al taller (fabricante, modelo, año, tipo de motor, cilindrada, potencia en HP, tipo de combustible y tracción). Permite verificar la compatibilidad de los repuestos con el vehículo exacto del cliente.
+  2. **Búsqueda de Modelos por Marca:** Consulta los modelos vigentes asociados a cualquier marca automotriz para catálogo rápido de repuestos.
+* **Interfaz de Usuario:** Nueva pantalla dedicada `VinConsultaScreen` accesible directamente desde la barra superior de la app, con integración directa al escáner de cámara nativo (`CameraX` + `ML Kit`) para escanear el VIN en formato código de barras.
+
+---
+
+## 📱 5. Aplicación Android (Jetpack Compose + MVVM)
+
+* **Offline-First:** Persistencia primaria reactiva en SQLite mediante **Room Database**.
+* **Sincronización Bidireccional:** Mediante **Retrofit 2.11.0** y **OkHttp Logging Interceptor**. Cuando hay conectividad, las operaciones CRUD se replican automáticamente en el backend Spring Boot (`http://10.0.2.2:8080`).
+* **Botón de Sincronización Manual:** En el TopAppBar para descargar y actualizar el catálogo local con el del servidor remoto en cualquier momento.
+* **Escaneo Nativo:** Cámara con CameraX y Google ML Kit para escaneo rápido de códigos QR y códigos de barra de repuestos y códigos VIN.
+* **Notificaciones del Sistema:** Alerta nativa en barra de estado (`NotificationManager`) ante niveles críticos de stock.
+
+---
+
+## 🧪 6. Pruebas Unitarias y Cobertura de Código
+
+Se implementaron suites exhaustivas de pruebas unitarias tanto en Backend como en Android con **JUnit 5**, **Mockito**, **MockK** y **Kotlinx Coroutines Test**:
+
+### Backend Spring Boot (39 pruebas unitarias ejecutadas):
+* `ProductoServiceTest`: Lógica de negocio, excepciones `ResourceNotFoundException` y regla de precios.
+* `ProductoControllerTest`: MockMvc de todos los endpoints REST y códigos HTTP (200, 201, 204, 400, 404).
+* `ProductoRepositoryTest`: Consultas personalizadas JPA y queries derivadas.
+* `GlobalExceptionHandlerTest`: Mapeo de errores y validaciones.
+* `DataInitializerTest`: Precarga de catálogo inicial.
+* `BackendApplicationTest`: Contexto Spring Boot y arranque de servidor.
+* **Cobertura Backend:** **95.9% de instrucciones / 98.17% de líneas** (Supera ampliamente el 80% exigido).
+
+### Android (9 pruebas unitarias ejecutadas):
+* `ProductoRepositoryTest`: Pruebas de orquestación de Room, sincronización Retrofit y llamadas a NHTSA.
+* `ProductoViewModelTest`: Pruebas reactivas sobre `StateFlow`, validación de estados UI, decodificación VIN y sincronización con backend.
+* **Ejecutar Pruebas Android:**
+  ```powershell
+  .\gradlew.bat testDebugUnitTest
+  .\gradlew.bat jacocoTestReport
+  ```
+
+---
+
+## 📦 7. Generación del APK Firmado (Release)
+
+La aplicación cuenta con configuración de firmado de producción automatizada mediante Gradle y `local.properties`:
+
+* **Ubicación del APK Firmado:**
+  `app/build/outputs/apk/release/app-release.apk`
+* **Tamaño del APK:** ~36.2 MB
+* **Keystore:** `release.jks` (Algoritmo RSA 2048 bits, validez 10.000 días).
+* **Comando de Generación:**
+  ```powershell
+  .\gradlew.bat assembleRelease
+  ```

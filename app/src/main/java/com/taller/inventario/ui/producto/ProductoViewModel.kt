@@ -448,6 +448,9 @@ class ProductoViewModel(
             ScannerTarget.CODIGO_FORM -> {
                 onCodigoChange(codigo)
             }
+            ScannerTarget.VIN_SCANNER -> {
+                onVinQueryChange(codigo)
+            }
         }
     }
 
@@ -457,6 +460,78 @@ class ProductoViewModel(
 
     fun limpiarMensajes() {
         _uiState.update { it.copy(errorMessage = null, userMessage = null) }
+    }
+
+    // ---------------------------------------------------------------
+    // Sincronización con Backend Spring Boot
+    // ---------------------------------------------------------------
+
+    fun sincronizarConBackend() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSyncing = true, syncMessage = null) }
+            val result = repository.sincronizarConBackend()
+            _uiState.update {
+                it.copy(
+                    isSyncing = false,
+                    syncMessage = if (result.isSuccess)
+                        "Sincronización exitosa: ${result.getOrDefault(0)} repuestos"
+                    else
+                        "Sin conexión al servidor: modo local activo"
+                )
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // API Externa NHTSA – Decodificación VIN y modelos por marca
+    // ---------------------------------------------------------------
+
+    fun onVinQueryChange(vin: String) {
+        _uiState.update { it.copy(vinQuery = vin, vinError = null, vinResult = null) }
+    }
+
+    fun decodificarVin() {
+        val vin = _uiState.value.vinQuery.trim()
+        if (vin.length < 17) {
+            _uiState.update { it.copy(vinError = "El VIN debe tener 17 caracteres") }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(vinLoading = true, vinError = null, vinResult = null) }
+            val result = repository.decodificarVin(vin)
+            _uiState.update {
+                if (result.isSuccess)
+                    it.copy(vinLoading = false, vinResult = result.getOrNull())
+                else
+                    it.copy(vinLoading = false, vinError = result.exceptionOrNull()?.message ?: "Error al decodificar VIN")
+            }
+        }
+    }
+
+    fun onMarcaConsultaChange(marca: String) {
+        _uiState.update { it.copy(marcaConsulta = marca, modelosError = null) }
+    }
+
+    fun buscarModelosPorMarca() {
+        val marca = _uiState.value.marcaConsulta.trim()
+        if (marca.isBlank()) {
+            _uiState.update { it.copy(modelosError = "Ingrese una marca") }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(modelosLoading = true, modelosError = null, modelosConsulta = emptyList()) }
+            val result = repository.obtenerModelosPorMarca(marca)
+            _uiState.update {
+                if (result.isSuccess)
+                    it.copy(modelosLoading = false, modelosConsulta = result.getOrDefault(emptyList()))
+                else
+                    it.copy(modelosLoading = false, modelosError = result.exceptionOrNull()?.message ?: "Error al consultar modelos")
+            }
+        }
+    }
+
+    fun limpiarVinResult() {
+        _uiState.update { it.copy(vinResult = null, vinError = null, vinQuery = "") }
     }
 }
 

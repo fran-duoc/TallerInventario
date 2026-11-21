@@ -1,10 +1,13 @@
 package com.taller.inventario.ui.producto
 
 import com.taller.inventario.data.local.ProductoEntity
+import com.taller.inventario.data.remote.dto.NhtsaModelItem
+import com.taller.inventario.data.remote.dto.NhtsaVinItem
 
 enum class ScannerTarget {
     BUSQUEDA,
-    CODIGO_FORM
+    CODIGO_FORM,
+    VIN_SCANNER
 }
 
 /**
@@ -50,6 +53,10 @@ data class ProductoUiState(
     val errorMessage: String? = null,
     val userMessage: String? = null,
 
+    // Sincronización con Backend Spring Boot
+    val isSyncing: Boolean = false,
+    val syncMessage: String? = null,
+
     // Colección de datos
     val productos: List<ProductoEntity> = emptyList(),
 
@@ -57,7 +64,17 @@ data class ProductoUiState(
     val productoAEliminar: ProductoEntity? = null,
     val mostrarDialogoEliminar: Boolean = false,
     val mostrarScanner: Boolean = false,
-    val scannerTarget: ScannerTarget = ScannerTarget.CODIGO_FORM
+    val scannerTarget: ScannerTarget = ScannerTarget.CODIGO_FORM,
+
+    // Integración API Externa (NHTSA Vehicle API)
+    val vinQuery: String = "",
+    val vinLoading: Boolean = false,
+    val vinResult: NhtsaVinItem? = null,
+    val vinError: String? = null,
+    val marcaConsulta: String = "Toyota",
+    val modelosConsulta: List<NhtsaModelItem> = emptyList(),
+    val modelosLoading: Boolean = false,
+    val modelosError: String? = null
 ) {
     /**
      * Devuelve true si no hay errores en los campos del formulario.

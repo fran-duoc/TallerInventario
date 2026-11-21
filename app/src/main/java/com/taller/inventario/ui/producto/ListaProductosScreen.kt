@@ -26,10 +26,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -81,6 +83,7 @@ private val CATEGORIAS_FILTRO = listOf(
 fun ListaProductosScreen(
     viewModel: ProductoViewModel,
     onNavigateToForm: (String?) -> Unit,
+    onNavigateToVin: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -99,6 +102,12 @@ fun ListaProductosScreen(
         state.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.limpiarMensajes()
+        }
+    }
+
+    LaunchedEffect(state.syncMessage) {
+        state.syncMessage?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
@@ -132,6 +141,33 @@ fun ListaProductosScreen(
                     }
                 },
                 actions = {
+                    // Botón consulta VIN (API externa NHTSA)
+                    IconButton(onClick = onNavigateToVin) {
+                        Icon(
+                            imageVector = Icons.Default.DirectionsCar,
+                            contentDescription = "Consulta VIN / Vehículos",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    // Botón sincronizar con backend Spring Boot
+                    IconButton(
+                        onClick = { viewModel.sincronizarConBackend() },
+                        enabled = !state.isSyncing
+                    ) {
+                        if (state.isSyncing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = "Sincronizar con servidor",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
                     // Botón de acceso directo para evidenciar el recurso nativo de notificaciones
                     IconButton(
                         onClick = {

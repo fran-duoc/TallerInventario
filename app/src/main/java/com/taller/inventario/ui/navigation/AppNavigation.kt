@@ -13,6 +13,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.taller.inventario.ui.consulta.VinConsultaScreen
 import com.taller.inventario.ui.producto.ListaProductosScreen
 import com.taller.inventario.ui.producto.ProductoFormScreen
 import com.taller.inventario.ui.producto.ProductoViewModel
@@ -61,6 +62,9 @@ fun AppNavigation(
                 viewModel = viewModel,
                 onNavigateToForm = { codigo ->
                     navController.navigate(Screen.ProductoForm.createRoute(codigo))
+                },
+                onNavigateToVin = {
+                    navController.navigate(Screen.VinConsulta.route)
                 }
             )
         }
@@ -92,5 +96,15 @@ fun AppNavigation(
                 }
             )
         }
+
+        composable(route = Screen.VinConsulta.route) {
+            VinConsultaScreen(
+                viewModel = viewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
+
