@@ -3,7 +3,9 @@
 **Asignatura:** Desarrollo de Aplicaciones Móviles (DSY1105)  
 **Institución:** Duoc UC  
 **Evaluación:** Evaluación Parcial 4 (Entrega Final - Full Stack & Móvil)  
-**Estudiante:** Francisca Velásquez (fra.velasquezp@duocuc.cl)  
+**Equipo de Desarrollo:**  
+* Francisca Velásquez (fra.velasquezp@duocuc.cl)  
+* Guioinno Igor (gui.igor@duocuc.cl)  
 **GitHub:** [https://github.com/fran-duoc/TallerInventario](https://github.com/fran-duoc/TallerInventario)  
 **Rama de Entrega:** `evaluacion-parcial-4`
 
