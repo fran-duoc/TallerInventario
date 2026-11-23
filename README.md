@@ -125,3 +125,35 @@ La aplicación cuenta con configuración de firmado de producción automatizada 
   ```powershell
   .\gradlew.bat assembleRelease
   ```
+
+
+---
+
+## 🖥️ 8. Guía de Ejecución y Defensa (Android Studio + Emulador)
+
+Para la evaluación y defensa del proyecto en equipos con recursos limitados, se debe seguir exactamente este orden:
+
+### Paso 1: Iniciar el Backend Spring Boot
+Abra una terminal en la raíz del proyecto y ejecute:
+```powershell
+cd backend
+.\gradlew.bat bootRun
+```
+* **Verificación:** Ingrese a `http://localhost:8080/api/productos` en su navegador o a la consola H2 en `http://localhost:8080/h2-console`.
+* **Persistencia:** Los datos se guardan de forma permanente en el archivo `./backend/data/tallerdb.mv.db`.
+
+### Paso 2: Ejecutar la App en Android Studio
+1. Abra **Android Studio** y cargue la carpeta del proyecto `TallerInventario`.
+2. Espere que finalice la sincronización de Gradle.
+3. Inicie **un solo emulador Android** (Virtual Device / AVD).
+4. La aplicación se comunicará de manera predeterminada con el backend mediante la IP reservada del emulador:
+   ```
+   http://10.0.2.2:8080/
+   ```
+5. Presione **Run 'app'** (`Shift + F10`) en Android Studio.
+
+### Paso 3: Pruebas Funcionales en el Emulador
+* **Sincronización:** En la barra superior de la app, pulse el botón de sincronización (ícono de flechas circulares) para sincronizar el catálogo de Room con Spring Boot.
+* **CRUD Completo:** Registre, edite o elimine repuestos desde el formulario; los cambios se guardan localmente en Room y se replican en la base de datos H2 del backend.
+* **API NHTSA:** Pulse el ícono de automóvil en el encabezado para acceder a `VinConsultaScreen`, ingrese un VIN de 17 caracteres (ej: `1HGBH41JXMN109186`) y pulse *Decodificar*, o consulte modelos por marca automotriz.
+* **Modo Offline:** Si el backend se detiene, la aplicación continúa funcionando fluidamente con persistencia local en Room sin caídas (offline-first).
